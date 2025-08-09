@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Circle K — Hoá đơn demo</title>
+<style>
+  :root{--ink:#222}
+  html,body{margin:0;background:#f3f3f3;font-family:ui-monospace,Menlo,Consolas,monospace}
+  .wrap{min-height:100vh;display:grid;place-items:center;padding:24px}
+  .ticket{
+    width:360px;max-width:92vw;background:#fff;color:var(--ink);
+    padding:22px 18px;border-radius:6px;border:1px solid #e9e9e9;
+    box-shadow:0 10px 28px rgba(0,0,0,.12);
+  }
+  .logo{font-weight:900;letter-spacing:.6px;font-size:22px}
+  .logo span{display:inline-block;padding:1px 6px;border:2px solid var(--ink);border-radius:3px;margin-left:6px}
+  .muted{opacity:.85}
+  .row{display:flex;justify-content:space-between;gap:8px}
+  .right{text-align:right}
+  hr{border:0;border-top:1px dashed #cfcfcf;margin:12px 0}
+  .desc{white-space:pre;line-height:1.35}
+  .total{font-weight:700}
+  .btns{display:flex;gap:10px;justify-content:center;margin-top:16px}
+  button{padding:10px 14px;border:1px solid #ddd;background:#fff;border-radius:8px;cursor:pointer}
+  button:hover{border-color:#aaa}
+  /* hiệu ứng giấy nhiệt khi in */
+  @media print{
+    body{background:#fff}
+    .btns{display:none}
+    .ticket{width:58mm;max-width:58mm;border:none;box-shadow:none;border-radius:0}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="ticket" id="ticket">
+    <div class="logo">CIRCLE <span>K</span></div>
+    <div class="muted" style="margin-top:6px">SG0093</div>
+    <div class="muted">22 NguyenKhoai, D 4, HCMC</div>
+    <div class="muted">Tel:(84-8) 3945.0469</div>
+    <div class="muted">www.circlek.com.vn</div>
+
+    <div style="height:8px"></div>
+    <div class="row"><div>Receipt No:</div><div id="receiptNo" class="right">093 02 —————— ————</div></div>
+    <div class="row"><div>Date:</div><div id="dateStr" class="right">Chưa tạo</div></div>
+    <div class="row"><div>Cashier:</div><div class="right">1588-Tuyen Doan Thi Ngoc</div></div>
+
+    <hr>
+<pre class="desc">Description:
+— 1 CK Coffee Milk Iced *1CP                         8,000
+—
+1 Item(s) (VAT included)                              8,000</pre>
+    <hr>
+
+    <div class="row"><div>CASH</div><div class="right total">8,000</div></div>
+    <div class="row"><div>CHANGE</div><div class="right">0</div></div>
+
+    <div style="height:8px"></div>
+    <div class="muted" style="text-align:center">THANK YOU FOR SHOPPING AT CIRCLE K !</div>
+  </div>
+
+  <div class="btns">
+    <button id="genBtn">Tạo hoá đơn</button>
+    <button onclick="window.print()">In hoá đơn</button>
+  </div>
+</div>
+
+<script>
+  const TZ = 'Asia/Ho_Chi_Minh';
+  const STORE = '093';
+  const COUNTER = '02';
+
+  const elNo = document.getElementById('receiptNo');
+  const elDate = document.getElementById('dateStr');
+
+  const pad = (n, w=2) => String(n).padStart(w,'0');
+
+  function nowVN() {
+    // Lấy thời điểm theo múi giờ VN
+    const s = new Date().toLocaleString('en-US', { timeZone: TZ });
+    return new Date(s);
+  }
+
+  function nextSeq(dateKey){
+    const key = 'seq-' + dateKey;
+    const cur = Number(localStorage.getItem(key) || 0) + 1;
+    localStorage.setItem(key, String(cur));
+    return pad(cur, 4); // 0001..9999
+  }
+
+  function formatDateDisplay(d){
+    // ví dụ: Oct 8, 2015 08:49 AM (giống ảnh gốc, có AM/PM)
+    return new Intl.DateTimeFormat('en-US',{
+      timeZone: TZ, year:'numeric', month:'short', day:'2-digit',
+      hour:'2-digit', minute:'2-digit', hour12:true
+    }).format(d);
+  }
+
+  function genReceipt(){
+    const t = nowVN();
+    const yyyy = t.getFullYear();
+    const mm = pad(t.getMonth()+1);
+    const dd = pad(t.getDate());
+    const dateKey = `${yyyy}${mm}${dd}`;
+
+    const seq = nextSeq(dateKey);
+    elNo.textContent = `${STORE} ${COUNTER} ${dateKey} ${seq}`;
+    elDate.textContent = formatDateDisplay(t);
+  }
+
+  document.getElementById('genBtn').addEventListener('click', genReceipt);
+
+  // Optional: tạo ngay lần đầu mở trang
+  genReceipt();
+</script>
+</body>
+</html>
